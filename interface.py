@@ -162,10 +162,10 @@ class MainWindow(QMainWindow):
         right_video_setting_label = QLabel("Источник видео")
         right_video_setting_label.setStyleSheet("font-weigth: bold; font-size: 14px; color: white;")
 
-        combo_camera = QComboBox()
-        combo_camera.addItems(["Камера 0 (встроенная)", "Камера 1 (внешняя)", "Выбрать файл "])
+        self.combo_camera = QComboBox()
+        self.combo_camera.addItems(["Камера 0 (встроенная)", "Камера 1 (внешняя)", "Выбрать файл "])
 
-        combo_camera.setStyleSheet("""
+        self.combo_camera.setStyleSheet("""
             QComboBox {
                 color: white;
                 border: 1px solid #5B5B5B;
@@ -177,8 +177,8 @@ class MainWindow(QMainWindow):
         startstop_layout.setSpacing(10)
 
 
-        start_button_camera = QPushButton("Старт")
-        start_button_camera.setStyleSheet("""
+        self.start_button_camera = QPushButton("Старт")
+        self.start_button_camera.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
                 color: white;
@@ -196,8 +196,8 @@ class MainWindow(QMainWindow):
         """)
 
         
-        stop_button_camera = QPushButton("Стоп")
-        stop_button_camera.setStyleSheet("""
+        self.stop_button_camera = QPushButton("Стоп")
+        self.stop_button_camera.setStyleSheet("""
             QPushButton {
                 background-color: #FF0000;
                 color: white;
@@ -215,13 +215,13 @@ class MainWindow(QMainWindow):
         """)
 
 
-        startstop_layout.addWidget(start_button_camera)
-        startstop_layout.addWidget(stop_button_camera)
+        startstop_layout.addWidget(self.start_button_camera)
+        startstop_layout.addWidget(self.stop_button_camera)
 
 
 
         right_video_setting_layout.addWidget(right_video_setting_label)
-        right_video_setting_layout.addWidget(combo_camera)
+        right_video_setting_layout.addWidget(self.combo_camera)
         right_video_setting_layout.addLayout(startstop_layout)
 
 #setting stop
@@ -238,9 +238,9 @@ class MainWindow(QMainWindow):
 
 
 
-        model_setting_combobox = QComboBox()
-        model_setting_combobox.addItems(["Model1", "Model2"])
-        model_setting_combobox.setStyleSheet("""
+        self.model_setting_combobox = QComboBox()
+        self.model_setting_combobox.addItems(["Model1", "Model2"])
+        self.model_setting_combobox.setStyleSheet("""
             QComboBox {
                 color: white;
                 border: 1px solid #5B5B5B;
@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
         model_setting_spicok_label.setStyleSheet("font-style: bold; font-size: 12px; color: #AAAAAA")
 
 
-        model_setting_layout.addWidget(model_setting_combobox)
+        model_setting_layout.addWidget(self.model_setting_combobox)
         model_setting_layout.addWidget(model_setting_header_label)
         model_setting_layout.addWidget(model_setting_spicok_label)
 
@@ -279,16 +279,16 @@ class MainWindow(QMainWindow):
         right_detect_setting_header_label = QLabel("Настройка детекции")
         right_detect_setting_header_label.setStyleSheet("font-style: bold; font-size: 14px; color: white")
 
-        right_detect_setting_porog_label = QLabel("Порог уверенности: 50")
-        right_detect_setting_porog_label.setStyleSheet("font-style: bold; font-size: 12px; color: white")
+        self.right_detect_setting_porog_label = QLabel("Порог уверенности: 50")
+        self.right_detect_setting_porog_label.setStyleSheet("font-style: bold; font-size: 12px; color: white")
 
-        right_detect_setting_slider_porog = QSlider(Qt.Orientation.Horizontal)  # Указываем ориентацию
-        right_detect_setting_slider_porog.setRange(25, 75)  # Диапазон от 0 до 100
-        right_detect_setting_slider_porog.setValue(50)  # Начальное значение 50
-        right_detect_setting_slider_porog.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.right_detect_setting_slider_porog = QSlider(Qt.Orientation.Horizontal)  # Указываем ориентацию
+        self.right_detect_setting_slider_porog.setRange(25, 75)  # Диапазон от 0 до 100
+        self.right_detect_setting_slider_porog.setValue(50)  # Начальное значение 50
+        self.right_detect_setting_slider_porog.setTickPosition(QSlider.TickPosition.TicksBelow)
 
-        right_detect_setting_slider_porog.setTickInterval(5)
-        right_detect_setting_slider_porog.setStyleSheet("""
+        self.right_detect_setting_slider_porog.setTickInterval(5)
+        self.right_detect_setting_slider_porog.setStyleSheet("""
         QSlider::groove:horizontal {
             height: 6px;
             background: #4B4B4B;
@@ -304,21 +304,18 @@ class MainWindow(QMainWindow):
         }
 
     """)
-        right_detect_setting_slider_porog.valueChanged.connect(
-            lambda value: right_detect_setting_porog_label.setText(f"Порог IoU: {value}%")
-        )
 
 
-        right_detect_setting_iou_label = QLabel("Порог уверенности: 50")
-        right_detect_setting_iou_label.setStyleSheet("font-style: bold; font-size: 12px; color: white")
+        self.right_detect_setting_iou_label = QLabel("Порог IoU: 50")
+        self.right_detect_setting_iou_label.setStyleSheet("font-style: bold; font-size: 12px; color: white")
 
-        right_detect_setting_iou_porog = QSlider(Qt.Orientation.Horizontal)  # Указываем ориентацию
-        right_detect_setting_iou_porog.setRange(25, 75)  # Диапазон от 0 до 100
-        right_detect_setting_iou_porog.setValue(50)  # Начальное значение 50
-        right_detect_setting_iou_porog.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.right_detect_setting_iou_porog = QSlider(Qt.Orientation.Horizontal)  # Указываем ориентацию
+        self.right_detect_setting_iou_porog.setRange(25, 75)  # Диапазон от 0 до 100
+        self.right_detect_setting_iou_porog.setValue(50)  # Начальное значение 50
+        self.right_detect_setting_iou_porog.setTickPosition(QSlider.TickPosition.TicksBelow)
 
-        right_detect_setting_iou_porog.setTickInterval(5)
-        right_detect_setting_iou_porog.setStyleSheet("""
+        self.right_detect_setting_iou_porog.setTickInterval(5)
+        self.right_detect_setting_iou_porog.setStyleSheet("""
         QSlider::groove:horizontal {
             height: 6px;
             background: #4B4B4B;
@@ -334,9 +331,6 @@ class MainWindow(QMainWindow):
         }
 
     """)
-        right_detect_setting_iou_porog.valueChanged.connect(
-            lambda value: right_detect_setting_iou_label.setText(f"Порог IoU: {value}%")
-        )
 
         right_detect_setting_visible_layout1 = QHBoxLayout()
         right_detect_setting_visible_layout1.setSpacing(10)
@@ -344,28 +338,28 @@ class MainWindow(QMainWindow):
         right_detect_setting_visible_layout2 = QHBoxLayout()
         right_detect_setting_visible_layout2.setSpacing(10)
 
-        right_detect_setting_visible_checkbox1 = QCheckBox()
-        right_detect_setting_visible_checkbox2 = QCheckBox()
+        self.right_detect_setting_visible_checkbox1 = QCheckBox()
+        self.right_detect_setting_visible_checkbox2 = QCheckBox()
 
         right_detect_setting_visible_label1 = QLabel("Показывать bourding box")
         right_detect_setting_visible_label2 = QLabel("Показывать уверенность")
         right_detect_setting_visible_label1.setStyleSheet("font-style: bold; font-size: 12px; color: white")    
         right_detect_setting_visible_label2.setStyleSheet("font-style: bold; font-size: 12px; color: white")   
 
-        right_detect_setting_visible_layout1.addWidget(right_detect_setting_visible_checkbox1)    
+        right_detect_setting_visible_layout1.addWidget(self.right_detect_setting_visible_checkbox1)    
         right_detect_setting_visible_layout1.addWidget(right_detect_setting_visible_label1)
 
 
-        right_detect_setting_visible_layout2.addWidget(right_detect_setting_visible_checkbox2)    
+        right_detect_setting_visible_layout2.addWidget(self.right_detect_setting_visible_checkbox2)    
         right_detect_setting_visible_layout2.addWidget(right_detect_setting_visible_label2)
  
 
 
         right_detect_setting_layout.addWidget(right_detect_setting_header_label)
-        right_detect_setting_layout.addWidget(right_detect_setting_porog_label)
-        right_detect_setting_layout.addWidget(right_detect_setting_slider_porog)
-        right_detect_setting_layout.addWidget(right_detect_setting_iou_label)
-        right_detect_setting_layout.addWidget(right_detect_setting_iou_porog)
+        right_detect_setting_layout.addWidget(self.right_detect_setting_porog_label)
+        right_detect_setting_layout.addWidget(self.right_detect_setting_slider_porog)
+        right_detect_setting_layout.addWidget(self.right_detect_setting_iou_label)
+        right_detect_setting_layout.addWidget(self.right_detect_setting_iou_porog)
         right_detect_setting_layout.addLayout(right_detect_setting_visible_layout1)
         right_detect_setting_layout.addLayout(right_detect_setting_visible_layout2)
 
@@ -385,8 +379,8 @@ class MainWindow(QMainWindow):
         right_detect_scrinshot_label = QLabel("Сохранение результатов")
         right_detect_scrinshot_label.setStyleSheet("font-style: bold; font-size: 12px; color: white")   
 
-        right_detect_scrinshot_button = QPushButton("Скриншот")
-        right_detect_scrinshot_button.setStyleSheet("""
+        self.right_detect_scrinshot_button = QPushButton("Скриншот")
+        self.right_detect_scrinshot_button.setStyleSheet("""
     QPushButton {
         background-color: #4CAF50;
         color: white;
@@ -402,15 +396,9 @@ class MainWindow(QMainWindow):
     }
 """)
 
-        # Функция для скриншота (нужно будет реализовать)
-        def screenshor_function():
-            print("Сохранен")        
-
-        right_detect_scrinshot_button.clicked.connect(screenshor_function)
-
 
         right_detect_scrinshot_layout.addWidget(right_detect_scrinshot_label)
-        right_detect_scrinshot_layout.addWidget(right_detect_scrinshot_button)
+        right_detect_scrinshot_layout.addWidget(self.right_detect_scrinshot_button)
 
 
 #Сркиншот стоп
@@ -432,25 +420,25 @@ class MainWindow(QMainWindow):
         bottom_layout.setContentsMargins(10, 0, 10, 0)
         
         # Статус=
-        status_label = QLabel("Статус камеры: Готов к работе")
-        status_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
+        self.status_label = QLabel("Статус камеры: Готов к работе")
+        self.status_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
         
 
 
         # Обнаружено
-        deteling_label = QLabel("Обнаружено: 0")
-        deteling_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
+        self.deteling_label = QLabel("Обнаружено: 0")
+        self.deteling_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
         
         # Время работы
-        time_label = QLabel("Время работы: 00:00")
-        time_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
+        self.time_label = QLabel("Время работы: 00:00")
+        self.time_label.setStyleSheet("color: #AAAAAA; font-size: 12px;")
 
         
         # Добавляем все в статус-бар
-        bottom_layout.addWidget(status_label)
-        bottom_layout.addWidget(deteling_label)
+        bottom_layout.addWidget(self.status_label)
+        bottom_layout.addWidget(self.deteling_label)
         bottom_layout.addStretch()
-        bottom_layout.addWidget(time_label)
+        bottom_layout.addWidget(self.time_label)
 
 
         # Добавляем левый контейнер в главный layout
@@ -460,8 +448,87 @@ class MainWindow(QMainWindow):
         main_vertical_layout.addLayout(main_horizontal_layout)
         main_vertical_layout.addWidget(bottom_widget)
 
+        self.init_functions()
+    
+    def init_functions(self):
+        self.start_button_camera.clicked.connect(self.start_camera)
+        self.stop_button_camera.clicked.connect(self.stop_camera)
+        self.right_detect_scrinshot_button.clicked.connect(self.take_screenshot)
+
+        self.right_detect_setting_slider_porog.valueChanged.connect(self.update_confidence_slider)
+        self.right_detect_setting_iou_porog.valueChanged.connect(self.update_iou_slider)
+        
+        # Подключение комбобоксов
+        self.combo_camera.currentIndexChanged.connect(self.camera_change)
+        self.model_setting_combobox.currentIndexChanged.connect(self.model_change)
+        
+        # Подключение чекбоксов
+        self.right_detect_setting_visible_checkbox1.stateChanged.connect(self.bounding_box_checkbox)
+        self.right_detect_setting_visible_checkbox2.stateChanged.connect(self.confidence_checkbox)
+        
+        # Таймер для обновления времени
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_time)
+        self.timer.start(1000)  # Обновление каждую секунду
+        self.secund = 0
+
+    def start_camera(self):
+        print("Камера работает")
+        self.status_label.setText("Статус: камера работает")
+    
+    def stop_camera(self):
+        print("Камера неработает")
+        self.status_label.setText("Статус: камера не работает")
+    
+    def take_screenshot(self):
+        print("Скриншот сохранен")
+        self.status_label.setText("Статус: Скриншот сохраненон не работает")
+    
+    def update_confidence_slider(self, x):
+        self.right_detect_setting_porog_label.setText(f"Порог уверенности: {x}%")
+        print(f"Порог уверенности изменен на {x}%")
+
+    def update_iou_slider(self, x):
+        self.right_detect_setting_iou_label.setText(f"Порог IoU: {x}%")
+        print(f"Порог IoU изменен на {x}%")
+
+    def camera_change(self, index):
+        sources = ["встроенная камера", "Внешняя камера", "Файл"]
+        if index < len(sources):
+            print(f"Выбран источник: {sources[index]}")
+            self.status_label.setText(f"Статус: Выбран {sources[index]}")
+
+    def model_change(self, index):
+        models = ["Model1", "Model2"]
+        if index < len(models):
+            print(f"Выбран источник: {models[index]}")
+            self.status_label.setText(f"Статус: Выбран {models[index]}")
+
+    def bounding_box_checkbox(self, vibor):
+        if vibor == Qt.CheckState.Checked.value:
+            print("Bounding box включен")
+            self.status_label.setText("Статус: Bounding box включен")
+        else:
+            print("Bounding box выключен")
+            self.status_label.setText("Статус: Bounding box выключен")
+
+    def confidence_checkbox(self, vibor):
+        if vibor == Qt.CheckState.Checked.value:
+            print("Отображение уверенности включен")
+            self.status_label.setText("Статус: Отображение уверенности включено")
+        else:
+            print("Отображение уверенности выключено")
+            self.status_label.setText("Статус: Отображение уверенности выключен")
+
+    def update_time(self):
+        self.secund += 1
+        minutes = self.secund // 60
+        seconds = self.secund % 60
+        self.time_label.setText(f"Время работы: {minutes:02d}:{seconds:02d}")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
