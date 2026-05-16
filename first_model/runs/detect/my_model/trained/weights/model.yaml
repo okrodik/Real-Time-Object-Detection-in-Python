@@ -1,0 +1,15 @@
+type: yolov8
+name: my_yolo26_warehouse
+display_name: My YOLOv26 Warehouse
+model_path: best.onnx
+input_width: 640
+input_height: 640
+confidence_threshold: 0.05
+nms_threshold: 0.45
+classes:
+  - box
+  - pallet
+  - forklift
+  - person
+  - shelf
+  - damaged_box

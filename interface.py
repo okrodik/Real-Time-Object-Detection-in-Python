@@ -1,15 +1,22 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QPushButton, QLabel, QComboBox, 
-                            QCheckBox, QSlider, QGroupBox, QGridLayout)
+                            QCheckBox, QSlider, QGroupBox, QGridLayout, QFileDialog) # Добавлен QFileDialog
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 import cv2
 import numpy as np
+from yolo_worker import YoloThread
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.worker = YoloThread()
+        self.worker.change_pixmap_signal.connect(self.update_image)
+        self.worker.count_signal.connect(self.update_object_count)
+        self.worker.fps_signal.connect(self.update_fps)              
+        self.worker.resolution_signal.connect(self.update_resolution) 
         
         # Настройки окна
         self.setWindowTitle("YOLO26 - Распознавание физических объектов | Оконешников Родион КИСП-23")
@@ -84,11 +91,11 @@ class MainWindow(QMainWindow):
         fps_widgets_layout = QVBoxLayout(self.fps_widgets)
         fps_widgets_layout.setContentsMargins(5, 5, 5, 5)
 
-        fps_widgets_label = QLabel("FPS: 0")
-        fps_widgets_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
-        fps_widgets_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fps_label = QLabel("FPS: 0")
+        self.fps_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
+        self.fps_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        fps_widgets_layout.addWidget(fps_widgets_label)
+        fps_widgets_layout.addWidget(self.fps_label)
 #FPS Виджет конец
 #FPS Качетсво начало
         self.permisson_widgets = QWidget()
@@ -98,11 +105,11 @@ class MainWindow(QMainWindow):
         permisson_widgets_layout = QVBoxLayout(self.permisson_widgets)
         permisson_widgets_layout.setContentsMargins(5, 5, 5, 5)
 
-        permisson_widgets_label = QLabel("Разрешение: 0")
-        permisson_widgets_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
-        permisson_widgets_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.resolution_label = QLabel("Разрешение: 0")
+        self.resolution_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
+        self.resolution_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        permisson_widgets_layout.addWidget(permisson_widgets_label)
+        permisson_widgets_layout.addWidget(self.resolution_label)
 #FPS Качетсво конец
 
 #FPS Объект конец
@@ -113,11 +120,11 @@ class MainWindow(QMainWindow):
         object_widgets_layout = QVBoxLayout(self.object_widgets)
         object_widgets_layout.setContentsMargins(5, 5, 5, 5)
 
-        object_widgets_label = QLabel("Качетсво: 0")
-        object_widgets_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
-        object_widgets_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.quality_label = QLabel("Качество: 0")
+        self.quality_label.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")   
+        self.quality_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        object_widgets_layout.addWidget(object_widgets_label)
+        object_widgets_layout.addWidget(self.quality_label)
 
 #FPS Объект конец
 
@@ -163,7 +170,7 @@ class MainWindow(QMainWindow):
         right_video_setting_label.setStyleSheet("font-weigth: bold; font-size: 14px; color: white;")
 
         self.combo_camera = QComboBox()
-        self.combo_camera.addItems(["Камера 0 (встроенная)", "Камера 1 (внешняя)", "Выбрать файл "])
+        self.combo_camera.addItems(["Камера 0 (встроенная)", "Камера 1", "Выбрать файл "])
 
         self.combo_camera.setStyleSheet("""
             QComboBox {
@@ -239,7 +246,7 @@ class MainWindow(QMainWindow):
 
 
         self.model_setting_combobox = QComboBox()
-        self.model_setting_combobox.addItems(["Model1", "Model2"])
+        self.model_setting_combobox.addItems(["Model1"])
         self.model_setting_combobox.setStyleSheet("""
             QComboBox {
                 color: white;
@@ -251,12 +258,11 @@ class MainWindow(QMainWindow):
         model_setting_header_label = QLabel("Классы объектов:")
         model_setting_header_label.setStyleSheet("font-style: bold; font-size: 14px; color: white")
 
-        model_setting_spicok_label = QLabel("""Класс 1 (человек)
-Класс 2 (автомобиль)
-Класс 3 (телефон)
-Класс 4 (телевизор)
-Класс 5 (шкаф)
-Класс 6 (мяч)""")
+        model_setting_spicok_label = QLabel("""0: box
+1: person
+2: forklift
+3: shelf
+4: damaged_box""")
         model_setting_spicok_label.setStyleSheet("font-style: bold; font-size: 12px; color: #AAAAAA")
 
 
@@ -459,7 +465,7 @@ class MainWindow(QMainWindow):
         self.right_detect_setting_iou_porog.valueChanged.connect(self.update_iou_slider)
         
         # Подключение комбобоксов
-        self.combo_camera.currentIndexChanged.connect(self.camera_change)
+        self.combo_camera.activated.connect(self.camera_change)
         self.model_setting_combobox.currentIndexChanged.connect(self.model_change)
         
         # Подключение чекбоксов
@@ -473,58 +479,128 @@ class MainWindow(QMainWindow):
         self.secund = 0
 
     def start_camera(self):
-        print("Камера работает")
-        self.status_label.setText("Статус: камера работает")
-    
+        self.worker.camera_index = self.combo_camera.currentIndex()
+        self.worker.start()
+        self.status_label.setText("Статус: Модель YOLO запущена")
+
     def stop_camera(self):
-        print("Камера неработает")
-        self.status_label.setText("Статус: камера не работает")
+        self.worker.stop()
+        self.video_label.setText("Камера остановлена")
+        self.status_label.setText("Статус: Остановлено")
     
     def take_screenshot(self):
-        print("Скриншот сохранен")
-        self.status_label.setText("Статус: Скриншот сохраненон не работает")
+        pixmap = self.video_label.pixmap()
+        if pixmap:
+            pixmap.save("screenshot.png") # Сохраняет текущий кадр из QLabel в файл
+            self.status_label.setText("Статус: Скриншот успешно сохранен в папку")
     
     def update_confidence_slider(self, x):
         self.right_detect_setting_porog_label.setText(f"Порог уверенности: {x}%")
         print(f"Порог уверенности изменен на {x}%")
+        self.worker.conf_threshold = x / 100.0
 
     def update_iou_slider(self, x):
         self.right_detect_setting_iou_label.setText(f"Порог IoU: {x}%")
         print(f"Порог IoU изменен на {x}%")
+        self.worker.iou_threshold = x / 100.0
 
     def camera_change(self, index):
-        sources = ["встроенная камера", "Внешняя камера", "Файл"]
-        if index < len(sources):
-            print(f"Выбран источник: {sources[index]}")
-            self.status_label.setText(f"Статус: Выбран {sources[index]}")
+        # Если выбран пункт "Выбрать файл" (индекс 2)
+        if index == 2:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, 
+                "Выберите источник (Видео или Изображение)", 
+                "", 
+                "Media Files (*.mp4 *.avi *.mkv *.jpg *.jpeg *.png);;All Files (*)"
+            )
+            
+            if file_path:
+                # Если файл выбран успешно
+                self.worker.camera_index = file_path
+                file_name = file_path.split('/')[-1]
+                self.status_label.setText(f"Статус: Выбран файл {file_name}")
+                print(f"Выбран файл: {file_path}")
+            else:
+                # ЛОГИКА ПО УМОЛЧАНИЮ: Если нажали "Отмена", сбрасываем на камеру 0
+                print("Выбор файла отменен. Возврат к камере по умолчанию.")
+                self.combo_camera.setCurrentIndex(0) # Визуально ставим 0
+                self.worker.camera_index = 0        # В логику ставим 0
+                self.status_label.setText("Статус: Выбор файла отменен, выбрана встроенная камера")
+                
+                # Перезапускаем поток, чтобы вернулась камера, если она работала
+                if self.worker.isRunning():
+                    self.worker.stop()
+                    self.worker.start()
+                return # Выходим из функции
+                
+        else:
+            # Для индексов 0 и 1 (камеры)
+            self.worker.camera_index = index
+            sources = ["встроенная камера", "внешняя камера"]
+            # Проверка на всякий случай, чтобы не выйти за границы списка имен
+            name = sources[index] if index < len(sources) else f"Камера {index}"
+            self.status_label.setText(f"Статус: Выбран источник {name}")
+
+        # Перезапуск потока при смене источника (если он уже запущен)
+        if self.worker.isRunning():
+            self.worker.stop()
+            self.worker.start()
 
     def model_change(self, index):
-        models = ["Model1", "Model2"]
-        if index < len(models):
-            print(f"Выбран источник: {models[index]}")
-            self.status_label.setText(f"Статус: Выбран {models[index]}")
+        model_paths = [
+        r"main_model\trained\weights\best.pt", 
+        r"main_model\trained\weights\last.pt"
+        ]
+        self.worker.model = YOLO(model_paths[index])
+        self.status_label.setText(f"Статус: Загружена модель {model_paths[index]}")
 
     def bounding_box_checkbox(self, vibor):
-        if vibor == Qt.CheckState.Checked.value:
-            print("Bounding box включен")
-            self.status_label.setText("Статус: Bounding box включен")
-        else:
-            print("Bounding box выключен")
-            self.status_label.setText("Статус: Bounding box выключен")
+        is_checked = (vibor == Qt.CheckState.Checked.value)
+        self.worker.show_boxes = is_checked # Теперь рамки реально будут исчезать/появляться
+        self.status_label.setText(f"Статус: Bounding box {'включен' if is_checked else 'выключен'}")
+
+    def update_fps(self, fps):
+        self.fps_label.setText(f"FPS: {fps}")
+
+    def update_resolution(self, width, height):
+        self.resolution_label.setText(f"Разрешение: {width}×{height}")
+    
+    def update_quality(self, confidence):
+        self.quality_label.setText(f"Качество: {int(confidence * 100)}%")
 
     def confidence_checkbox(self, vibor):
-        if vibor == Qt.CheckState.Checked.value:
-            print("Отображение уверенности включен")
+        is_checked = (vibor == Qt.CheckState.Checked.value)
+
+        self.worker.show_conf = is_checked 
+        
+        if is_checked:
+            print("Отображение уверенности включено")
             self.status_label.setText("Статус: Отображение уверенности включено")
         else:
             print("Отображение уверенности выключено")
-            self.status_label.setText("Статус: Отображение уверенности выключен")
+            self.status_label.setText("Статус: Отображение уверенности выключено")
 
     def update_time(self):
         self.secund += 1
         minutes = self.secund // 60
         seconds = self.secund % 60
         self.time_label.setText(f"Время работы: {minutes:02d}:{seconds:02d}")
+
+
+    def update_image(self, cv_img):
+        """Получает кадр из YOLO, конвертирует и выводит на экран"""
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        qt_image = QImage(rgb_image.data, w, h, ch * w, QImage.Format.Format_RGB888)
+        pixmap = QPixmap.fromImage(qt_image).scaled(
+            self.video_label.width(), 
+            self.video_label.height(), 
+            Qt.AspectRatioMode.KeepAspectRatio
+        )
+        self.video_label.setPixmap(pixmap)
+
+    def update_object_count(self, count):
+        self.deteling_label.setText(f"Обнаружено: {count}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
